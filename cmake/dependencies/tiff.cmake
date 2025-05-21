@@ -21,11 +21,11 @@ PROCESSORCOUNT(_cpu_count)
 RV_CREATE_STANDARD_DEPS_VARIABLES("RV_DEPS_TIFF" "4.6.0" "" "")
 
 SET(_download_url
-    "https://gitlab.com/libtiff/libtiff/-/archive/v${_version}/libtiff-v${_version}.tar.gz"
+    "https://download.osgeo.org/libtiff/tiff-${_version}.tar.gz"
 )
 
 SET(_download_hash
-    "118a2e5fc9ed71653195b332b9715890"
+    "fc7d49a9348b890b29f91a4ecadd5b49"
 )
 
 IF(NOT RV_TARGET_WINDOWS)
