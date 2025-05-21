@@ -24,24 +24,20 @@ fi
 # Linux
 if [[ "$OSTYPE" == "linux"* ]]; then
   CMAKE_GENERATOR="${CMAKE_GENERATOR:-Ninja}"
-  RV_TOOLCHAIN=""
 
 # MacOS
 elif [[ "$OSTYPE" == "darwin"* ]]; then
   CMAKE_GENERATOR="${CMAKE_GENERATOR:-Ninja}"
-  RV_TOOLCHAIN=""
-  export PATH="/opt/homebrew/opt/python@3.11/libexec/bin:$PATH" 
 
 # Windows
-elif [[ "$OSTYPE" == "msys"* || "$OSTYPE" == "cygwin"* ]]; then
+elif [[ "$OSTYPE" == "msys"* ]]; then
   CMAKE_GENERATOR="${CMAKE_GENERATOR:-Visual Studio 17 2022}"
   WIN_PERL="${WIN_PERL:-c:/Strawberry/perl/bin}"
   CMAKE_WIN_ARCH="${CMAKE_WIN_ARCH:--A x64}"
   SETUPTOOLS_USE_DISTUTILS=stdlib
-  RV_TOOLCHAIN="-T v143,version=14.40"
 
 else
-  echo "OS does not seem to be linux, darwin or msys/cygwin. Exiting."
+  echo "OS does not seem to be linux, darwin or msys. Exiting."
   exit 1
 fi
 
@@ -50,66 +46,37 @@ if [ -z "$QT_HOME" ]; then
   echo "Searching for Qt installation..."
 
   if [[ "$OSTYPE" == "linux"* ]]; then
-    QT_HOME_6=$(find ~/Qt*/6.5* -maxdepth 4 -type d -path '*/gcc_64' | sort -V | tail -n 1)
-    QT_HOME_5=$(find ~/Qt*/5.15* -maxdepth 4 -type d -path '*/gcc_64' | sort -V | tail -n 1)
+    QT_HOME=$(find ~/Qt/5.15* -type d -maxdepth 4 -path '*/gcc_64' | sort -V | tail -n 1)
   elif [[ "$OSTYPE" == "darwin"* ]]; then
-    QT_HOME_6=$(find ~/Qt*/6.5* -maxdepth 4 -type d -path '*/macos' | sort -V | tail -n 1)
-    QT_HOME_5=$(find ~/Qt*/5.15* -maxdepth 4 -type d -path '*/macos' | sort -V | tail -n 1)
+    QT_HOME=$(find ~/Qt/5.15* -type d -maxdepth 4 -path '*/macos' | sort -V | tail -n 1)
 
     # If no macos installation found, try clang_64
-    if [ -z "$QT_HOME_6" ]; then
-      QT_HOME_6=$(find ~/Qt*/6.5* -maxdepth 4 -type d -path '*/clang_64' | sort -V | tail -n 1)
+    if [ -z "$QT_HOME" ]; then
+      QT_HOME=$(find ~/Qt/5.15* -type d -maxdepth 4 -path '*/clang_64' | sort -V | tail -n 1)
     fi
 
-    if [ -z "$QT_HOME_5" ]; then
-      QT_HOME_5=$(find ~/Qt*/5.15* -maxdepth 4 -type d -path '*/clang_64' | sort -V | tail -n 1)
-    fi
-
-  elif [[ "$OSTYPE" == "msys"* || "$OSTYPE" == "cygwin"* ]]; then
-    QT_HOME_6=$(find c:/Qt*/6.5* -maxdepth 4 -type d -path '*/msvc2019_64' | sort -V | tail -n 1)
-    QT_HOME_5=$(find c:/Qt*/5.15* -maxdepth 4 -type d -path '*/msvc2019_64' | sort -V | tail -n 1)
+  elif [[ "$OSTYPE" == "msys"* ]]; then
+    QT_HOME=$(find c:/Qt/5.15* -type d -maxdepth 4 -path '*/msvc2019_64' | sort -V | tail -n 1)
   fi
 
   # Could not find Qt installation
-  if [ -z "$QT_HOME_6" ] && [ -z "$QT_HOME_5" ]; then
+  if [ -z "$QT_HOME" ]; then
     echo "Could not find Qt installation. Please set QT_HOME to the correct path in your environment variables."
   else 
-    if [ -n "$QT_HOME_6" ]; then
-      QT_HOME="$QT_HOME_6"
-      QT_VERSION="6"
-      RV_DEPS_QT_LOCATION="RV_DEPS_QT6_LOCATION"
-      RV_VFX_PLATFORM="CY2024"
-    else
-      QT_HOME="$QT_HOME_5"
-      QT_VERSION="5"
-      RV_DEPS_QT_LOCATION="RV_DEPS_QT5_LOCATION"
-      RV_VFX_PLATFORM="CY2023"
-    fi
-    echo "Found Qt $QT_VERSION installation at $QT_HOME"
-    echo "Note: If you have multiple version of Qt installed, the first one found will be used. The search prioritize Qt 6."
+    echo "Found Qt installation at $QT_HOME"
   fi
- 
+
 # Qt installation path already set
 else 
-  if [[ $QT_HOME == *"6.5"* ]]; then
-    echo "Using Qt 6 installation already set at $QT_HOME"
-    RV_DEPS_QT_LOCATION="RV_DEPS_QT6_LOCATION"
-    RV_VFX_PLATFORM="CY2024"
-  elif [[ $QT_HOME == *"5.15"* ]]; then
-    echo "Using Qt 5 installation already set at $QT_HOME"
-      RV_DEPS_QT_LOCATION="RV_DEPS_QT5_LOCATION"
-      RV_VFX_PLATFORM="CY2023"
-  else
-    echo "Invalid Qt installation path. Please set QT_HOME to the correct path in your environment variables."
-  fi
+  echo "Using Qt installation already set at $QT_HOME"
 fi
 
 # Must be executed in a function as it changes the shell environment
 rvenv_shell() {
   local activate_path=".venv/bin/activate"
 
-  # Using msys2/cygwin as a way to detect if the script is running on Windows.
-  if [[ "$OSTYPE" == "msys"* || "$OSTYPE" == "cygwin"* ]]; then
+  # Using msys2 as a way to detect if the script is running on Windows.
+  if [[ "$OSTYPE" == "msys"* ]]; then
     activate_path=".venv/Scripts/activate"
   fi
 
@@ -130,8 +97,8 @@ RV_INST_DEBUG="${RV_INST_DEBUG:-${RV_HOME}/_install_debug}"
 RV_BUILD_PARALLELISM="${RV_BUILD_PARALLELISM:-$(python3 -c 'import os; print(os.cpu_count())')}"
 NON_FREE_DECODERS="aac;aac_at;aac_fixed;aac_latm;bink;binkaudio_dct;binkaudio_rdft;dnxhd;dvvideo;prores;qtrle;vp9;vp9_cuvid;vp9_mediacodec;vp9_qsv;vp9_rkmpp;vp9_v4l2m2m"
 NON_FREE_ENCODERS="aac;aac_mf;dnxhd;dvvideo;prores;qtrle;vp9_qsv;vp9_vaapi"
-
 # ALIASES: Basic commands
+
 alias rvenv="rvenv_shell"
 alias rvsetup="rvenv && SETUPTOOLS_USE_DISTUTILS=${SETUPTOOLS_USE_DISTUTILS} python3 -m pip install --upgrade -r ${RV_HOME}/requirements.txt"
 alias rvcfg="rvenv && cmake -B ${RV_BUILD} -G \"${CMAKE_GENERATOR}\" ${CMAKE_WIN_ARCH} -DCMAKE_BUILD_TYPE=Release -DRV_DEPS_QT5_LOCATION=${QT_HOME} -DRV_DEPS_WIN_PERL_ROOT=${WIN_PERL} -DRV_FFMPEG_NON_FREE_DECODERS_TO_ENABLE=\"${NON_FREE_DECODERS}\" -DRV_FFMPEG_NON_FREE_ENCODERS_TO_ENABLE=\"${NON_FREE_ENCODERS}\""
@@ -167,7 +134,7 @@ echo "RV_BUILD is $RV_BUILD"
 echo "RV_INST is $RV_INST"
 echo "CMAKE_GENERATOR is $CMAKE_GENERATOR"
 echo "QT_HOME is $QT_HOME"
-if [[ "$OSTYPE" == "msys"* || "$OSTYPE" == "cygwin"* ]]; then echo "WIN_PERL is $WIN_PERL"; fi
+if [[ "$OSTYPE" == "msys"* ]]; then echo "WIN_PERL is $WIN_PERL"; fi
 
 echo "To override any of them do unset [name]; export [name]=value; source $SCRIPT"
 echo

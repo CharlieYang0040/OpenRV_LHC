@@ -13,6 +13,7 @@ module: export_utils
     use extra_commands;
 
     global int saveSessionCount=1;
+    global float _tempExportFPS = 60.0; // Global variable to store temporary FPS for export
 
     \: tempSessionName (string; string extension="rv")
     {
@@ -224,19 +225,65 @@ module: export_utils
     \: exportMovieOverRange(ExternalProcess; 
                             int start,
                             int end,
-                            string name="out.mov",
+                            string name="out.mp4",
                             bool blocking=false,
                             string conversion="default")
     {
         let temp = makeTempSession(conversion);
 
-        string[] args =
+        float currentExportFPS = 60.0; 
+        try
         {
-            temp,
-            "-o", name,
-            "-t",  "%d-%d" % (start, end) 
-        };
+            currentExportFPS = fps(); 
+            if (currentExportFPS <= 0.0)
+            {
+                currentExportFPS = 60.0;
+            }
+        }
+        catch (exception e)
+        {
+            currentExportFPS = 60.0;
+        }
 
+        string[] args;
+
+        if (conversion == "gif")
+        {
+            // GIF export settings
+            args =
+            {
+                temp,
+                "-o", name,
+                "-t",  "%d-%d" % (start, end),
+                "-codec", "gif",
+                "-outfps", "%f" % currentExportFPS, // Adjust FPS for GIF as needed, e.g., 10 or 15
+                "-outparams",
+                    "loop=0" // 0 for infinite loop, -1 for no loop, N for N loops
+                    // Additional GIF specific parameters can be added here if rvio supports them
+                    // e.g., "flags=lanczos+paletteuse" for quality, but depends on rvio's ffmpeg integration
+            };
+        }
+        else // Default to MP4 (H.264) or other existing logic
+        {
+            args =
+            {
+                temp,
+                "-o", name,
+                "-t",  "%d-%d" % (start, end),
+                "-codec", "libx264",
+                "-outfps", "%f" % currentExportFPS,
+                "-outparams",
+                    "crf=0",
+                    "preset=slow",
+                    "profile:v=high",
+                    "color_primaries=bt709",
+                    "color_trc=bt709",
+                    "colorspace=bt709",
+                    "color_range=tv",
+                    "pix_fmt=yuv420p"
+            };
+        }
+        
         if (blocking)
         {
             rvio_blocking("Export Movie", args, removeSession(temp));

@@ -4347,7 +4347,7 @@ global let enterFrame = startTextEntryMode(\: (string;) {"Go To Frame: ";}, goto
     for_each (f; marks) markFrame(f, true);
 }
 
-\: exportAs (void; Event ev, string requiredExt, string outputType)
+\: exportAs (void; Event ev, string requiredExt, string outputType, string conversion="default")
 {
     State state = data();
 
@@ -4395,7 +4395,7 @@ global let enterFrame = startTextEntryMode(\: (string;) {"Go To Frame: ";}, goto
             
             try
             {
-                state.externalProcess = F(inPoint(), outPoint(), f, false, "default");
+                state.externalProcess = F(inPoint(), outPoint(), f, false, conversion);
                 toggleProcessInfo();
                 redraw();
             }
@@ -6033,8 +6033,9 @@ global bool debugGC = false;
 {
 
    Menu exportMenu = Menu {
-            {"Quicktime Movie...", exportAs(, "mov", "Quicktime Export"), "control e", videoSourcesExistAndExportOKState},
-            {"Image Sequence...", exportAs(, "*", "Image Sequence Export"), nil, videoSourcesExistAndExportOKState},
+            {"MP4 (H.264)...", exportAs(, "mp4", "MP4 (H.264) Export", "default"), "control e", videoSourcesExistAndExportOKState},
+            {"GIF...", exportAs(, "gif", "GIF Export", "gif"), "", videoSourcesExistAndExportOKState}, // Added GIF export with conversion type
+            {"Image Sequence...", exportAs(, "*", "Image Sequence Export", "default"), nil, videoSourcesExistAndExportOKState},
             {"Marked Frames...", exportMarked, nil, hasMarksState},
             {"Annotated Frames...", exportAnnotatedFrames, nil, videoSourcesExistState},
             {"Audio File...", exportAs(, "*", "Audio Export"), nil, sourcesExistState},
@@ -6642,7 +6643,7 @@ global bool debugGC = false;
     bind("key-down-->", nextMatchedFrame, "Go to Matching Frame of Next Source");
     bind("key-down--shift--left", prevView, "Go to Previous View");
     bind("key-down--shift--right", nextView, "Go to Next View");
-    bind("key-down--control--e", exportAs(, "mov", "Quicktime Export"), "Export Quicktime Movie");
+    bind("key-down--control--e", exportAs(, "mp4", "MP4 (H.264) Export"), "Export MP4 (H.264) Movie");
     bind("key-down--control--q", queryClose, "Close Session");
     bind("key-down--control--N", clearEverything, "Clear Session");
     bind("key-down--control--S", saveAs, "Save Session As");

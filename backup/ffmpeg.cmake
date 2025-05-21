@@ -23,29 +23,15 @@ SET(_target
     "RV_DEPS_FFMPEG"
 )
 
-IF(RV_FFMPEG_7)
-  SET(_version
-      "n7.1"
-  )
-
-  SET(_download_hash
-      "a7a85ec05c9bc3aeefee12743899d8ab"
-  )
-ELSEIF(RV_FFMPEG_6)
-  SET(_version
-      "n6.1.2"
-  )
-
-  SET(_download_hash
-      "953b858e5be3ab66232bdbb90e42f50d"
-  )
-ELSE()
-  # This shouldn't happen, but it could if there are changes the acceptable versions of FFmpeg in ffmpeg.cmake and this section is not updated accordingly.
-  MESSAGE(FATAL_ERROR "The requested version of FFmpeg is not supported.")
-ENDIF()
-
+SET(_version
+    "n6.1.1"
+)
 SET(_download_url
     "https://github.com/FFmpeg/FFmpeg/archive/refs/tags/${_version}.zip"
+)
+
+SET(_download_hash
+    "6dfc27fcb6da6f653c6ec025c2cd9b00"
 )
 
 SET(_base_dir
@@ -62,9 +48,7 @@ SET(${_target}_ROOT_DIR
 SET(_make_command
     make
 )
-SET(_configure_command
-    sh ./configure
-)
+SET(_configure_command "sh ./configure")
 
 SET(_include_dir
     ${_install_dir}/include
@@ -79,109 +63,54 @@ ELSE()
   )
 ENDIF()
 
-IF(RV_FFMPEG_7)
-  IF(RV_TARGET_DARWIN)
-    SET(_ffmpeg_avutil_lib_name
-        ${CMAKE_SHARED_LIBRARY_PREFIX}avutil.59${CMAKE_SHARED_LIBRARY_SUFFIX}
-    )
-    SET(_ffmpeg_swresample_lib_name
-        ${CMAKE_SHARED_LIBRARY_PREFIX}swresample.5${CMAKE_SHARED_LIBRARY_SUFFIX}
-    )
-    SET(_ffmpeg_swscale_lib_name
-        ${CMAKE_SHARED_LIBRARY_PREFIX}swscale.8${CMAKE_SHARED_LIBRARY_SUFFIX}
-    )
-    SET(_ffmpeg_avcodec_lib_name
-        ${CMAKE_SHARED_LIBRARY_PREFIX}avcodec.61${CMAKE_SHARED_LIBRARY_SUFFIX}
-    )
-    SET(_ffmpeg_avformat_lib_name
-        ${CMAKE_SHARED_LIBRARY_PREFIX}avformat.61${CMAKE_SHARED_LIBRARY_SUFFIX}
-    )
-  ELSEIF(RV_TARGET_LINUX)
-    SET(_ffmpeg_avutil_lib_name
-        ${CMAKE_SHARED_LIBRARY_PREFIX}avutil${CMAKE_SHARED_LIBRARY_SUFFIX}.59
-    )
-    SET(_ffmpeg_swresample_lib_name
-        ${CMAKE_SHARED_LIBRARY_PREFIX}swresample${CMAKE_SHARED_LIBRARY_SUFFIX}.5
-    )
-    SET(_ffmpeg_swscale_lib_name
-        ${CMAKE_SHARED_LIBRARY_PREFIX}swscale${CMAKE_SHARED_LIBRARY_SUFFIX}.8
-    )
-    SET(_ffmpeg_avcodec_lib_name
-        ${CMAKE_SHARED_LIBRARY_PREFIX}avcodec${CMAKE_SHARED_LIBRARY_SUFFIX}.61
-    )
-    SET(_ffmpeg_avformat_lib_name
-        ${CMAKE_SHARED_LIBRARY_PREFIX}avformat${CMAKE_SHARED_LIBRARY_SUFFIX}.61
-    )
-  ELSEIF(RV_TARGET_WINDOWS)
-    SET(_ffmpeg_avutil_lib_name
-        ${CMAKE_SHARED_LIBRARY_PREFIX}avutil-59${CMAKE_SHARED_LIBRARY_SUFFIX}
-    )
-    SET(_ffmpeg_swresample_lib_name
-        ${CMAKE_SHARED_LIBRARY_PREFIX}swresample-5${CMAKE_SHARED_LIBRARY_SUFFIX}
-    )
-    SET(_ffmpeg_swscale_lib_name
-        ${CMAKE_SHARED_LIBRARY_PREFIX}swscale-8${CMAKE_SHARED_LIBRARY_SUFFIX}
-    )
-    SET(_ffmpeg_avcodec_lib_name
-        ${CMAKE_SHARED_LIBRARY_PREFIX}avcodec-61${CMAKE_SHARED_LIBRARY_SUFFIX}
-    )
-    SET(_ffmpeg_avformat_lib_name
-        ${CMAKE_SHARED_LIBRARY_PREFIX}avformat-61${CMAKE_SHARED_LIBRARY_SUFFIX}
-    )
-  ENDIF()
-ELSEIF(RV_FFMPEG_6)
-  IF(RV_TARGET_DARWIN)
-    SET(_ffmpeg_avutil_lib_name
-        ${CMAKE_SHARED_LIBRARY_PREFIX}avutil.58${CMAKE_SHARED_LIBRARY_SUFFIX}
-    )
-    SET(_ffmpeg_swresample_lib_name
-        ${CMAKE_SHARED_LIBRARY_PREFIX}swresample.4${CMAKE_SHARED_LIBRARY_SUFFIX}
-    )
-    SET(_ffmpeg_swscale_lib_name
-        ${CMAKE_SHARED_LIBRARY_PREFIX}swscale.7${CMAKE_SHARED_LIBRARY_SUFFIX}
-    )
-    SET(_ffmpeg_avcodec_lib_name
-        ${CMAKE_SHARED_LIBRARY_PREFIX}avcodec.60${CMAKE_SHARED_LIBRARY_SUFFIX}
-    )
-    SET(_ffmpeg_avformat_lib_name
-        ${CMAKE_SHARED_LIBRARY_PREFIX}avformat.60${CMAKE_SHARED_LIBRARY_SUFFIX}
-    )
-  ELSEIF(RV_TARGET_LINUX)
-    SET(_ffmpeg_avutil_lib_name
-        ${CMAKE_SHARED_LIBRARY_PREFIX}avutil${CMAKE_SHARED_LIBRARY_SUFFIX}.58
-    )
-    SET(_ffmpeg_swresample_lib_name
-        ${CMAKE_SHARED_LIBRARY_PREFIX}swresample${CMAKE_SHARED_LIBRARY_SUFFIX}.4
-    )
-    SET(_ffmpeg_swscale_lib_name
-        ${CMAKE_SHARED_LIBRARY_PREFIX}swscale${CMAKE_SHARED_LIBRARY_SUFFIX}.7
-    )
-    SET(_ffmpeg_avcodec_lib_name
-        ${CMAKE_SHARED_LIBRARY_PREFIX}avcodec${CMAKE_SHARED_LIBRARY_SUFFIX}.60
-    )
-    SET(_ffmpeg_avformat_lib_name
-        ${CMAKE_SHARED_LIBRARY_PREFIX}avformat${CMAKE_SHARED_LIBRARY_SUFFIX}.60
-    )
-  ELSEIF(RV_TARGET_WINDOWS)
-    SET(_ffmpeg_avutil_lib_name
-        ${CMAKE_SHARED_LIBRARY_PREFIX}avutil-58${CMAKE_SHARED_LIBRARY_SUFFIX}
-    )
-    SET(_ffmpeg_swresample_lib_name
-        ${CMAKE_SHARED_LIBRARY_PREFIX}swresample-4${CMAKE_SHARED_LIBRARY_SUFFIX}
-    )
-    SET(_ffmpeg_swscale_lib_name
-        ${CMAKE_SHARED_LIBRARY_PREFIX}swscale-7${CMAKE_SHARED_LIBRARY_SUFFIX}
-    )
-    SET(_ffmpeg_avcodec_lib_name
-        ${CMAKE_SHARED_LIBRARY_PREFIX}avcodec-60${CMAKE_SHARED_LIBRARY_SUFFIX}
-    )
-    SET(_ffmpeg_avformat_lib_name
-        ${CMAKE_SHARED_LIBRARY_PREFIX}avformat-60${CMAKE_SHARED_LIBRARY_SUFFIX}
-    )
-  ENDIF()
-ELSE()
-  # This shouldn't happen. But it could if there are changes the acceptable versions of FFmpeg in ffmpeg.cmake and this section is not updated accordingly.
-  MESSAGE(FATAL_ERROR "The requested version of FFmpeg is not supported.")
+IF(RV_TARGET_DARWIN)
+  SET(_ffmpeg_avutil_lib_name
+      ${CMAKE_SHARED_LIBRARY_PREFIX}avutil.58${CMAKE_SHARED_LIBRARY_SUFFIX}
+  )
+  SET(_ffmpeg_swresample_lib_name
+      ${CMAKE_SHARED_LIBRARY_PREFIX}swresample.4${CMAKE_SHARED_LIBRARY_SUFFIX}
+  )
+  SET(_ffmpeg_swscale_lib_name
+      ${CMAKE_SHARED_LIBRARY_PREFIX}swscale.7${CMAKE_SHARED_LIBRARY_SUFFIX}
+  )
+  SET(_ffmpeg_avcodec_lib_name
+      ${CMAKE_SHARED_LIBRARY_PREFIX}avcodec.60${CMAKE_SHARED_LIBRARY_SUFFIX}
+  )
+  SET(_ffmpeg_avformat_lib_name
+      ${CMAKE_SHARED_LIBRARY_PREFIX}avformat.60${CMAKE_SHARED_LIBRARY_SUFFIX}
+  )
+ELSEIF(RV_TARGET_LINUX)
+  SET(_ffmpeg_avutil_lib_name
+      ${CMAKE_SHARED_LIBRARY_PREFIX}avutil${CMAKE_SHARED_LIBRARY_SUFFIX}.58
+  )
+  SET(_ffmpeg_swresample_lib_name
+      ${CMAKE_SHARED_LIBRARY_PREFIX}swresample${CMAKE_SHARED_LIBRARY_SUFFIX}.4
+  )
+  SET(_ffmpeg_swscale_lib_name
+      ${CMAKE_SHARED_LIBRARY_PREFIX}swscale${CMAKE_SHARED_LIBRARY_SUFFIX}.7
+  )
+  SET(_ffmpeg_avcodec_lib_name
+      ${CMAKE_SHARED_LIBRARY_PREFIX}avcodec${CMAKE_SHARED_LIBRARY_SUFFIX}.60
+  )
+  SET(_ffmpeg_avformat_lib_name
+      ${CMAKE_SHARED_LIBRARY_PREFIX}avformat${CMAKE_SHARED_LIBRARY_SUFFIX}.60
+  )
+ELSEIF(RV_TARGET_WINDOWS)
+  SET(_ffmpeg_avutil_lib_name
+      ${CMAKE_SHARED_LIBRARY_PREFIX}avutil-58${CMAKE_SHARED_LIBRARY_SUFFIX}
+  )
+  SET(_ffmpeg_swresample_lib_name
+      ${CMAKE_SHARED_LIBRARY_PREFIX}swresample-4${CMAKE_SHARED_LIBRARY_SUFFIX}
+  )
+  SET(_ffmpeg_swscale_lib_name
+      ${CMAKE_SHARED_LIBRARY_PREFIX}swscale-7${CMAKE_SHARED_LIBRARY_SUFFIX}
+  )
+  SET(_ffmpeg_avcodec_lib_name
+      ${CMAKE_SHARED_LIBRARY_PREFIX}avcodec-60${CMAKE_SHARED_LIBRARY_SUFFIX}
+  )
+  SET(_ffmpeg_avformat_lib_name
+      ${CMAKE_SHARED_LIBRARY_PREFIX}avformat-60${CMAKE_SHARED_LIBRARY_SUFFIX}
+  )
 ENDIF()
 
 SET(_ffmpeg_libs
@@ -259,32 +188,13 @@ LIST(APPEND RV_FFMPEG_COMMON_CONFIG_OPTIONS "--disable-vaapi")
 LIST(APPEND RV_FFMPEG_COMMON_CONFIG_OPTIONS "--disable-doc")
 LIST(APPEND RV_FFMPEG_COMMON_CONFIG_OPTIONS "--disable-bzlib")
 IF(RV_TARGET_WINDOWS)
-  # LIST(APPEND RV_FFMPEG_COMMON_CONFIG_OPTIONS "--toolchain=msvc")
-ENDIF()
-
-# Change the condition to TRUE to be able to debug into FFmpeg.
-IF(FALSE)
-  LIST(APPEND RV_FFMPEG_COMMON_CONFIG_OPTIONS "--disable-optimizations")
-  LIST(APPEND RV_FFMPEG_COMMON_CONFIG_OPTIONS "--enable-debug=3")
-  LIST(APPEND RV_FFMPEG_COMMON_CONFIG_OPTIONS "--disable-stripping")
+  # LIST(APPEND RV_FFMPEG_COMMON_CONFIG_OPTIONS "--toolchain=msvc") # Using MinGW, so remove msvc toolchain
 ENDIF()
 
 # Controls the EXTERNALPROJECT_ADD/BUILD_ALWAYS option
 SET(${_force_rebuild}
     FALSE
 )
-
-IF(RV_TARGET_APPLE_ARM64)
-  SET(RV_FFMPEG_USE_VIDEOTOOLBOX_DEFAULT_VALUE
-      ON
-  )
-ELSE()
-  SET(RV_FFMPEG_USE_VIDEOTOOLBOX_DEFAULT_VALUE
-      OFF
-  )
-ENDIF()
-
-OPTION(RV_FFMPEG_USE_VIDEOTOOLBOX "FFmpeg laveraging the VideoToolbox framework" ${RV_FFMPEG_USE_VIDEOTOOLBOX_DEFAULT_VALUE})
 
 # Make a list of the Open RV's FFmpeg config options unless already customized. Note that a super project, a project consuming Open RV as a submodule, can
 # customize the FFmpeg config options via the RV_FFMPEG_CONFIG_OPTIONS cmake property.
@@ -444,6 +354,22 @@ ENDIF()
 LIST(JOIN _ffmpeg_pkg_config_path ":" _ffmpeg_pkg_config_path)
 
 SEPARATE_ARGUMENTS(RV_FFMPEG_PATCH_COMMAND_STEP)
+
+# # 디버깅 메시지 수정 시작
+# SET(_debug_full_configure_string "${_full_configure_string}") # 실제 CONFIGURE_COMMAND에 사용될 문자열
+# SET(_debug_pkg_config_path "${_ffmpeg_pkg_config_path}") # 실제 PKG_CONFIG_PATH에 사용될 문자열
+# 
+# MESSAGE(STATUS "---- DEBUG FFMPEG CONFIGURE START ----")
+# MESSAGE(STATUS "PKG_CONFIG_PATH for FFmpeg: '${_debug_pkg_config_path}'")
+# MESSAGE(STATUS "FFmpeg configure options string: ${_debug_full_configure_string}")
+# MESSAGE(STATUS "---- DEBUG FFMPEG CONFIGURE END ----")
+# 
+# # 의도적으로 존재하지 않는 명령을 실행하여 CMake 중단 (FATAL_ERROR 대신 사용)
+# execute_process(COMMAND __THIS_COMMAND_DOES_NOT_EXIST__ RESULT_VARIABLE _rv)
+# IF(NOT _rv EQUAL 0)
+#     MESSAGE(FATAL_ERROR "Intentionally stopping CMake after FFmpeg configure debug output. See messages above.")
+# ENDIF()
+# # 디버깅 메시지 수정 끝
 
 EXTERNALPROJECT_ADD(
   ${_target}
