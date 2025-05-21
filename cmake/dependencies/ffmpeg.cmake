@@ -62,8 +62,8 @@ SET(${_target}_ROOT_DIR
 SET(_make_command
     make
 )
-SET(_configure_command
-    sh ./configure
+SET(_configure_command 
+    "sh ./configure"
 )
 
 SET(_include_dir
