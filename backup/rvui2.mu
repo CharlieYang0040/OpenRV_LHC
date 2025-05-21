@@ -4395,7 +4395,7 @@ global let enterFrame = startTextEntryMode(\: (string;) {"Go To Frame: ";}, goto
             
             try
             {
-                state.externalProcess = F(inPoint(), outPoint(), f, false, requiredExt);
+                state.externalProcess = F(inPoint(), outPoint(), f, false, "default");
                 toggleProcessInfo();
                 redraw();
             }
@@ -6033,8 +6033,7 @@ global bool debugGC = false;
 {
 
    Menu exportMenu = Menu {
-            {"MP4 (H.264)...", exportAs(, "mp4", "MP4 (H.264) Export"), "control e", videoSourcesExistAndExportOKState},
-            {"GIF...", exportAs(, "gif", "GIF Export"), nil, videoSourcesExistAndExportOKState},
+            {"Quicktime Movie...", exportAs(, "mov", "Quicktime Export"), "control e", videoSourcesExistAndExportOKState},
             {"Image Sequence...", exportAs(, "*", "Image Sequence Export"), nil, videoSourcesExistAndExportOKState},
             {"Marked Frames...", exportMarked, nil, hasMarksState},
             {"Annotated Frames...", exportAnnotatedFrames, nil, videoSourcesExistState},
@@ -6643,7 +6642,7 @@ global bool debugGC = false;
     bind("key-down-->", nextMatchedFrame, "Go to Matching Frame of Next Source");
     bind("key-down--shift--left", prevView, "Go to Previous View");
     bind("key-down--shift--right", nextView, "Go to Next View");
-    bind("key-down--control--e", exportAs(, "mp4", "MP4 (H.264) Export"), "Export MP4 (H.264) Movie");
+    bind("key-down--control--e", exportAs(, "mov", "Quicktime Export"), "Export Quicktime Movie");
     bind("key-down--control--q", queryClose, "Close Session");
     bind("key-down--control--N", clearEverything, "Clear Session");
     bind("key-down--control--S", saveAs, "Save Session As");

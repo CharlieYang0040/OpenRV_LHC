@@ -232,13 +232,13 @@ ENDIF()
 EXTERNALPROJECT_ADD(
   ${_target}
   DEPENDS Python::Python
-  DOWNLOAD_NAME ${_target}_${_version}.tar.gz
-  DOWNLOAD_DIR ${RV_DEPS_DOWNLOAD_DIR}
-  DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+  # DOWNLOAD_NAME ${_target}_${_version}.tar.gz
+  # DOWNLOAD_DIR ${RV_DEPS_DOWNLOAD_DIR}
+  # DOWNLOAD_EXTRACT_TIMESTAMP TRUE
   SOURCE_DIR ${RV_DEPS_BASE_DIR}/${_target}/src
   INSTALL_DIR ${_install_dir}
-  URL ${_download_url}
-  URL_MD5 ${_download_hash}
+  # URL ${_download_url}
+  # URL_MD5 ${_download_hash}
   CONFIGURE_COMMAND ${_bootstrap_command} --with-toolset=${_toolset} --with-python=${_boost_python_bin}
   BUILD_COMMAND
     # Ref.: https://www.boost.org/doc/libs/1_70_0/tools/build/doc/html/index.html#bbv2.builtin.features.cflags Ref.:

@@ -13,7 +13,6 @@ module: export_utils
     use extra_commands;
 
     global int saveSessionCount=1;
-    global float _tempExportFPS = 60.0; // Global variable to store temporary FPS for export
 
     \: tempSessionName (string; string extension="rv")
     {
@@ -222,70 +221,21 @@ module: export_utils
         }
     }
 
-    \: _getExportArgs (string[]; string temp, string outName, int startFrame, int endFrame, float fps, string conversionType)
-    {
-        if (conversionType == "gif")
-        {
-            // GIF export settings
-            string[] gifArgs =
-            {
-                temp,
-                "-o", outName,
-                "-t",  "%d-%d" % (startFrame, endFrame),
-                // "-codec", "gif",
-                // "-outfps", "%f" % fps,
-                "-outparams",
-                    "loop=0" // 0 for infinite loop, -1 for no loop, N for N loops
-            };
-            return gifArgs;
-        }
-        else // Default to MP4 (H.264) or other existing logic
-        {
-            string[] mp4Args =
-            {
-                temp,
-                "-o", outName,
-                "-t",  "%d-%d" % (startFrame, endFrame),
-                "-codec", "libx264",
-                "-outfps", "%f" % fps,
-                "-outparams",
-                    "crf=0",
-                    "preset=slow",
-                    "profile:v=high",
-                    "color_primaries=bt709",
-                    "color_trc=bt709",
-                    "colorspace=bt709",
-                    "color_range=tv",
-                    "pix_fmt=yuv420p"
-            };
-            return mp4Args;
-        }
-    }
-
     \: exportMovieOverRange(ExternalProcess; 
                             int start,
                             int end,
-                            string name="out.mp4",
+                            string name="out.mov",
                             bool blocking=false,
                             string conversion="default")
     {
         let temp = makeTempSession(conversion);
-        
-        float currentExportFPS = 60.0; 
-        try
-        {
-            currentExportFPS = fps(); 
-            if (currentExportFPS <= 0.0)
-            {
-                currentExportFPS = 60.0;
-            }
-        }
-        catch (exception e)
-        {
-            currentExportFPS = 60.0;
-        }
 
-        string[] args = _getExportArgs(temp, name, start, end, currentExportFPS, conversion);
+        string[] args =
+        {
+            temp,
+            "-o", name,
+            "-t",  "%d-%d" % (start, end) 
+        };
 
         if (blocking)
         {
