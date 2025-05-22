@@ -38,6 +38,7 @@
 #include <boost/algorithm/string.hpp>
 #include <mp4v2Utils/mp4v2Utils.h>
 #include <cstring>
+#include <sstream> // Added for std::ostringstream
 
 extern "C"
 {
@@ -4648,6 +4649,145 @@ namespace TwkMovie
         if (avCodec->capabilities & AV_CODEC_CAP_EXPERIMENTAL)
         {
             avCodecContext->strict_std_compliance = FF_COMPLIANCE_EXPERIMENTAL;
+        }
+
+        // Manually set color-related AVCodecContext options from m_parameters
+        // This is done before applyCodecParameters so these specific settings take precedence
+        // and are correctly interpreted as direct AVCodecContext member assignments
+        // rather than AVOptions (which they are not for libx264).
+        if (isVideo) // Only apply to video streams
+        {
+            std::map<std::string, std::string>::iterator it;
+            bool removeApplied = removeAppliedCodecParametersFromTheList; // Use the flag passed to the function
+
+            // Process color_primaries
+            it = m_parameters.find("color_primaries");
+            if (it != m_parameters.end()) {
+                std::string val_str = it->second;
+                AVColorPrimaries enum_val = AVCOL_PRI_UNSPECIFIED;
+                if (val_str == "bt709") enum_val = AVCOL_PRI_BT709;
+                else if (val_str == "bt470m") enum_val = AVCOL_PRI_BT470M;
+                else if (val_str == "bt470bg") enum_val = AVCOL_PRI_BT470BG;
+                else if (val_str == "smpte170m") enum_val = AVCOL_PRI_SMPTE170M;
+                else if (val_str == "smpte240m") enum_val = AVCOL_PRI_SMPTE240M;
+                else if (val_str == "film") enum_val = AVCOL_PRI_FILM;
+                else if (val_str == "bt2020") enum_val = AVCOL_PRI_BT2020;
+                else if (val_str == "smpte428" || val_str == "smpte428_1") enum_val = AVCOL_PRI_SMPTE428;
+                else if (val_str == "smpte431" || val_str == "smpte431_2") enum_val = AVCOL_PRI_SMPTE431;
+                else if (val_str == "smpte432" || val_str == "smpte432_1") enum_val = AVCOL_PRI_SMPTE432;
+                else if (val_str == "jedec-p22" || val_str == "ebu3213") enum_val = AVCOL_PRI_JEDEC_P22;
+                else if (val_str == "unspecified") enum_val = AVCOL_PRI_UNSPECIFIED;
+
+                if (enum_val != AVCOL_PRI_UNSPECIFIED || val_str == "unspecified") {
+                    avCodecContext->color_primaries = enum_val;
+                    if (m_request.verbose) {
+                        std::ostringstream message;
+                        message << "MovieFFMpegWriter: Applied color_primaries=" << val_str << " (enum: " << enum_val << ") directly to AVCodecContext";
+                        report(message.str());
+                    }
+                    if (removeApplied) m_parameters.erase(it);
+                } else if (m_request.verbose) {
+                    std::ostringstream message;
+                    message << "MovieFFMpegWriter: WARN: Unknown value for m_parameters color_primaries: " << val_str;
+                    report(message.str(), true);
+                }
+            }
+
+            // Process color_trc
+            it = m_parameters.find("color_trc");
+            if (it != m_parameters.end()) {
+                std::string val_str = it->second;
+                AVColorTransferCharacteristic enum_val = AVCOL_TRC_UNSPECIFIED;
+                if (val_str == "bt709") enum_val = AVCOL_TRC_BT709;
+                else if (val_str == "gamma22") enum_val = AVCOL_TRC_GAMMA22;
+                else if (val_str == "gamma28") enum_val = AVCOL_TRC_GAMMA28;
+                else if (val_str == "smpte170m") enum_val = AVCOL_TRC_SMPTE170M;
+                else if (val_str == "smpte240m") enum_val = AVCOL_TRC_SMPTE240M;
+                else if (val_str == "linear") enum_val = AVCOL_TRC_LINEAR;
+                else if (val_str == "log" || val_str == "log100") enum_val = AVCOL_TRC_LOG;
+                else if (val_str == "log_sqrt" || val_str == "log316") enum_val = AVCOL_TRC_LOG_SQRT;
+                else if (val_str == "iec61966-2-4") enum_val = AVCOL_TRC_IEC61966_2_4;
+                else if (val_str == "bt1361" || val_str == "bt1361e") enum_val = AVCOL_TRC_BT1361_ECG;
+                else if (val_str == "srgb" || val_str == "iec61966-2-1") enum_val = AVCOL_TRC_IEC61966_2_1;
+                else if (val_str == "bt2020-10" || val_str == "bt2020_10bit") enum_val = AVCOL_TRC_BT2020_10;
+                else if (val_str == "bt2020-12" || val_str == "bt2020_12bit") enum_val = AVCOL_TRC_BT2020_12;
+                else if (val_str == "pq" || val_str == "smpte2084") enum_val = AVCOL_TRC_SMPTE2084;
+                else if (val_str == "smpte428" || val_str == "smpte428_1") enum_val = AVCOL_TRC_SMPTE428;
+                else if (val_str == "hlg" || val_str == "arib-std-b67") enum_val = AVCOL_TRC_ARIB_STD_B67;
+                else if (val_str == "unspecified") enum_val = AVCOL_TRC_UNSPECIFIED;
+
+                if (enum_val != AVCOL_TRC_UNSPECIFIED || val_str == "unspecified") {
+                    avCodecContext->color_trc = enum_val;
+                    if (m_request.verbose) {
+                        std::ostringstream message;
+                        message << "MovieFFMpegWriter: Applied color_trc=" << val_str << " (enum: " << enum_val << ") directly to AVCodecContext";
+                        report(message.str());
+                    }
+                    if (removeApplied) m_parameters.erase(it);
+                } else if (m_request.verbose) {
+                    std::ostringstream message;
+                    message << "MovieFFMpegWriter: WARN: Unknown value for m_parameters color_trc: " << val_str;
+                    report(message.str(), true);
+                }
+            }
+
+            // Process colorspace
+            it = m_parameters.find("colorspace");
+            if (it != m_parameters.end()) {
+                std::string val_str = it->second;
+                AVColorSpace enum_val = AVCOL_SPC_UNSPECIFIED;
+                if (val_str == "rgb") enum_val = AVCOL_SPC_RGB;
+                else if (val_str == "bt709") enum_val = AVCOL_SPC_BT709;
+                else if (val_str == "fcc") enum_val = AVCOL_SPC_FCC;
+                else if (val_str == "bt470bg" || val_str == "gbr") enum_val = AVCOL_SPC_BT470BG;
+                else if (val_str == "smpte170m" || val_str == "bt601") enum_val = AVCOL_SPC_SMPTE170M;
+                else if (val_str == "smpte240m") enum_val = AVCOL_SPC_SMPTE240M;
+                else if (val_str == "ycgco" || val_str == "ycocg") enum_val = AVCOL_SPC_YCGCO;
+                else if (val_str == "bt2020nc" || val_str == "bt2020_ncl") enum_val = AVCOL_SPC_BT2020_NCL;
+                else if (val_str == "bt2020c" || val_str == "bt2020_cl") enum_val = AVCOL_SPC_BT2020_CL;
+                else if (val_str == "smpte2085") enum_val = AVCOL_SPC_SMPTE2085;
+                // Note: CHROMA_DERIVED enums might be less common for direct user input
+                else if (val_str == "ictcp") enum_val = AVCOL_SPC_ICTCP;
+                else if (val_str == "unspecified") enum_val = AVCOL_SPC_UNSPECIFIED;
+                
+                if (enum_val != AVCOL_SPC_UNSPECIFIED || val_str == "unspecified") {
+                    avCodecContext->colorspace = enum_val;
+                    if (m_request.verbose) {
+                        std::ostringstream message;
+                        message << "MovieFFMpegWriter: Applied colorspace=" << val_str << " (enum: " << enum_val << ") directly to AVCodecContext";
+                        report(message.str());
+                    }
+                    if (removeApplied) m_parameters.erase(it);
+                } else if (m_request.verbose) {
+                    std::ostringstream message;
+                    message << "MovieFFMpegWriter: WARN: Unknown value for m_parameters colorspace: " << val_str;
+                    report(message.str(), true);
+                }
+            }
+
+            // Process color_range
+            it = m_parameters.find("color_range");
+            if (it != m_parameters.end()) {
+                std::string val_str = it->second;
+                AVColorRange enum_val = AVCOL_RANGE_UNSPECIFIED;
+                if (val_str == "tv" || val_str == "mpeg" || val_str == "limited" || val_str == "1") enum_val = AVCOL_RANGE_MPEG;
+                else if (val_str == "pc" || val_str == "jpeg" || val_str == "full" || val_str == "2") enum_val = AVCOL_RANGE_JPEG;
+                else if (val_str == "unspecified" || val_str == "0") enum_val = AVCOL_RANGE_UNSPECIFIED;
+
+                if (enum_val != AVCOL_RANGE_UNSPECIFIED || val_str == "unspecified" || val_str == "0") {
+                    avCodecContext->color_range = enum_val;
+                    if (m_request.verbose) {
+                        std::ostringstream message;
+                        message << "MovieFFMpegWriter: Applied color_range=" << val_str << " (enum: " << enum_val << ") directly to AVCodecContext";
+                        report(message.str());
+                    }
+                    if (removeApplied) m_parameters.erase(it);
+                } else if (m_request.verbose) {
+                    std::ostringstream message;
+                    message << "MovieFFMpegWriter: WARN: Unknown value for m_parameters color_range: " << val_str;
+                    report(message.str(), true);
+                }
+            }
         }
 
         // Set any relevant codec options

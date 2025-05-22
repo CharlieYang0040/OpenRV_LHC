@@ -227,12 +227,13 @@ module: export_utils
                 "-codec", "libx264",
                 "-outfps", "%f" % fps,
                 "-outparams",
-                    "pix_fmt=yuv420p",       // ffmpeg 명령어 기준
-                    "cc:crf=0",              // 무손실은 유지
-                    // "cc:color_primaries=bt709",
-                    // "cc:color_trc=bt709",
-                    // "cc:colorspace=bt709",
-                    // "cc:color_range=tv"      // "limited"에 해당 (또는 "1" 또는 "mpeg")
+                    "pix_fmt=yuv420p",
+                    "cc:crf=0",              // CRF는 cc: 접두사 유지
+                    "color_primaries=bt709", // cc: 제거
+                    "color_trc=srgb",       // cc: 제거
+                    "colorspace=bt709",      // cc: 제거
+                    "color_range=tv"         // cc: 제거
+                //  "quality=1.0" // 기존 quality 파라미터 주석 처리 유지
             };
             return mp4Args;
         }
