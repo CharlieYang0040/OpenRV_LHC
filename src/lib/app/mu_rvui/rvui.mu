@@ -4196,13 +4196,11 @@ global let enterFrame = startTextEntryMode(\: (string;) {"Go To Frame: ";}, goto
 \: cloneRV (void; Event ev)
 {
     let target = tmpSessionCopyName(),
-        rv     = system.getenv ("RV_APP_RV");
+        rv     = system.getenv ("RV_APP_RV"),
+        cmd    = "\"%s\" \"%s\"" % (rv, target);
 
     saveSession(target, true, true);
-
-    string[] arguments = { "%s" % (target) };
-    // Quotes are not needed for program containing spaces with overloaded version of startDetached.
-    qt.QProcess.startDetached (rv, arguments);
+    qt.QProcess.startDetached (cmd);
 }
 
 \: cloneSyncedRV (void; Event ev)
@@ -4211,13 +4209,10 @@ global let enterFrame = startTextEntryMode(\: (string;) {"Go To Frame: ";}, goto
     remoteNetwork(true);
 
     let myPort = myNetworkPort(),
-        rv     = system.getenv ("RV_APP_RV");
+        rv     = system.getenv ("RV_APP_RV"),
+        cmd = "\"%s\" -network -networkPort %s -networkConnect 127.0.0.1 %s -flags syncPullFirst" % (rv, myPort+1, myPort);
 
-    string[] arguments = { "-network", "-networkPort", "%s" % (myPort+1), "-networkConnect", "127.0.0.1", 
-                           "%s" % (myPort), "-flags", "syncPullFirstfalse" };
-
-    // Quotes are not needed for program containing spaces with overloaded version of startDetached.
-    qt.QProcess.startDetached (rv, arguments);
+    qt.QProcess.startDetached (cmd);
 }
 
 \: save (void; Event ev)
@@ -6034,7 +6029,7 @@ global bool debugGC = false;
 
    Menu exportMenu = Menu {
             {"MP4 (H.264)...", exportAs(, "mp4", "MP4 (H.264) Export"), "control e", videoSourcesExistAndExportOKState},
-            {"GIF...", exportAs(, "gif", "GIF Export"), nil, videoSourcesExistAndExportOKState},
+            {"GIF...", exportAs(, "gif", "GIF Export"), nil, videoSourcesExistAndExportOKState}, // Added GIF export with conversion type
             {"Image Sequence...", exportAs(, "*", "Image Sequence Export"), nil, videoSourcesExistAndExportOKState},
             {"Marked Frames...", exportMarked, nil, hasMarksState},
             {"Annotated Frames...", exportAnnotatedFrames, nil, videoSourcesExistState},

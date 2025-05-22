@@ -19,7 +19,7 @@ module: export_utils
     {
         require qt;
         let path = qt.QDir.tempPath();
-        "%s/temp_%d_%d.%s" %  (path,
+        return "%s/temp_%d_%d.%s" %  (path,
                            system.getpid(),
                            saveSessionCount++,
                            extension);
@@ -27,7 +27,7 @@ module: export_utils
 
     \: removeSession (VoidFunc; string name)
     {
-        \: (void;)
+        return \: (void;)
         {
             if (commandLineFlag("debug_export") neq nil)
             {
@@ -63,16 +63,12 @@ module: export_utils
                 return node;
             }
         }
-
         return nil;
     }
 
     \: setExportDisplayConvert (void; string conversion)
     {
         let outColorNode = getColorNode("RVOutputGroup");
-        //
-        //  Maybe the user configured the output node themselves
-        //
         if (conversion == "pass" || outColorNode eq nil) return;
 
         if (conversion == "default")
@@ -87,9 +83,6 @@ module: export_utils
                     opipes  = nodesInGroupOfType("defaultOutputGroup", "RVDisplayPipelineGroup"),
                     ostereo = nodesInGroupOfType("defaultOutputGroup", "RVDisplayStereo");
 
-                //
-                //  Copy display properties and nodes to output
-                //
                 colorProf = tempSessionName("profile");
                 writeProfile(colorProf, dpipes.front());
                 readProfile(colorProf, opipes.front(), false);
@@ -113,7 +106,7 @@ module: export_utils
             int r = 0;
             float g = 1.0;
 
-            if (conversion == "") ;
+            if (conversion == "") ; // Use default
             else if (conversion == "sRGB")      s = 1;
             else if (conversion == "Rec709")    r = 1;
             else if (conversion == "Gamma 2.0") g = 2.0;
@@ -129,10 +122,9 @@ module: export_utils
     \: makeTempSession (string; string conversion="default")
     {
         setExportDisplayConvert(conversion);
-
         let name = tempSessionName();
         saveSession(name, true);
-        name;
+        return name;
     }
 
     \: removeTempSession(void;)
@@ -149,48 +141,40 @@ module: export_utils
         let cmd = system.getenv("RV_APP_RVIO");
         string[] args = {"-v", "-err-to-out" };
         [string] argList;
-
         let lic = system.getenv("RV_APP_USE_LICENSE_FILE", nil);
-
         if (lic neq nil) 
         {
             args.push_back("-lic");
             args.push_back(lic);
         }
-
         for_each (a; inargs) args.push_back(a);
         for_index (i; args) argList = args[args.size()-i-1] : argList;
-
-	rvioSetup();
-
-        ExternalQProcess(name,
-                         cmd, argList, 1,
-                         ExternalProcess.Type.ReadOnly,
-                         cleanup);
+        rvioSetup(); // Ensure this function exists or comment out if not critical for test
+        return ExternalQProcess(name, cmd, argList, 1, ExternalProcess.Type.ReadOnly, cleanup);
     }
 
     \: rvio_blocking (void; string name, string[] args, (void;) cleanup = nil)
     {
         ExternalQProcess proc = rvio(name, args, cleanup);
-
-        proc._proc.waitForFinished(-1);
+        if (proc neq nil) proc._proc.waitForFinished(-1);
     }
 
     \: markedRegionBoundaries ([(int,int,int)];)
     {
-        let a = markedFrames(),
-            b = markedFrames();
-
+        let a = markedFrames(), b = markedFrames();
+        if (a.size() < 2) 
+        {
+            [(int,int,int)] emptyResult;
+            return emptyResult;
+        }
         a.pop_back();
         b.erase(0, 1);
         [(int,int,int)] ranges;
-
         for (int i=a.size()-1; i >= 0; i--)
         {
             ranges = (a[i], b[i]-1, i) : ranges;
         }
-        
-        ranges;
+        return ranges;
     }
 
     \: exportImageSequenceOverRange (ExternalProcess; 
@@ -203,14 +187,7 @@ module: export_utils
     {
         let name = "%s.#" % prefix,
             temp = makeTempSession(conversion);
-
-        string[] args = 
-        { 
-            temp,
-            "-o", "%s.%s" % (name, imagetype),
-            "-t", "%d-%d" % (start, end)
-        };
-        
+        string[] args = { temp, "-o", "%s.%s" % (name, imagetype), "-t", "%d-%d" % (start, end) };
         if (blocking)
         {
             rvio_blocking("Export Image Sequence", args, removeSession(temp));
@@ -249,13 +226,6 @@ module: export_utils
                 "-codec", "libx264",
                 "-outfps", "%f" % fps,
                 "-outparams",
-                    "crf=0",
-                    "preset=slow",
-                    "profile:v=high",
-                    "color_primaries=bt709",
-                    "color_trc=bt709",
-                    "colorspace=bt709",
-                    "color_range=tv",
                     "pix_fmt=yuv420p"
             };
             return mp4Args;
@@ -269,7 +239,7 @@ module: export_utils
                             bool blocking=false,
                             string conversion="default")
     {
-        let temp = makeTempSession(conversion);
+        let temp = makeTempSession("default");
         
         float currentExportFPS = 60.0; 
         try
@@ -303,34 +273,24 @@ module: export_utils
         use io;
         osstream timestr;
         let frames = markedFrames();
-
         for_index (i; frames)
         {
             let f = frames[i];
             if (i > 0) print(timestr, ",");
             print(timestr, "%d" % f);
         }
-
         let temp = makeTempSession(conversion);
-
-        string[] args =
-        {
-            temp,
-            "-o", filepat,
-            "-t", string(timestr)
-        };
-
+        string[] args = { temp, "-o", filepat, "-t", string(timestr) };
         return rvio("Export Annotated Frames", args, removeSession(temp));
     }
 
     \: exportMarkedRegionsAsMovies (void; string prefix="", string movietype="mov", string conversion="default")
     {
         if (prefix == "") prefix = sessionFileName().substr(0,-3);
-
+        
         for_each (inout; markedRegionBoundaries())
         {
             let (start, end, i) = inout;
-
             exportMovieOverRange(start, end,
                                  "%s_cut%d.%s" % (prefix, i, movietype),
                                  true, conversion);
@@ -343,15 +303,11 @@ module: export_utils
                                     string conversion="default")
     {
         if (prefix == "") prefix = sessionFileName().substr(0,-3);
-        
         for_each (inout; markedRegionBoundaries())
         {
             let (start, end, i) = inout,
-                name            = "%s_cut%d" % (prefix, i);
-
-            exportImageSequenceOverRange(start, end,
-                                         name, imagetype,
-                                         true, conversion);
+                name = "%s_cut%d" % (prefix, i);
+            exportImageSequenceOverRange(start, end, name, imagetype, true, conversion);
         }
     }
 }

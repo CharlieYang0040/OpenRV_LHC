@@ -687,7 +687,9 @@ namespace TwkMovie
         };
 
         const char* supportedEncodingCodecsArray[] = {
-            "dvvideo", "libx264", "mjpeg", "pcm_s16be", "rawvideo", 0};
+            "aac",    "ac3",  "alac",    "dnxhd", "dpx", "h264", "jpeg2000", "mjpeg",
+            "libx264", "rawvideo", "mpeg1video", "mpeg2video", "prores", "tiff", "vorbis", "vp8", "vp9", "gif",
+            0};
 
         const char* metadataFieldsArray[] = {
             "album",    "album_artist", "artist",      "author",  "comment",
@@ -4510,9 +4512,23 @@ namespace TwkMovie
             }
             else
             {
-                avCodecContext->pix_fmt = (avCodec->pix_fmts)
-                                              ? avCodec->pix_fmts[0]
-                                              : RV_OUTPUT_FFMPEG_FMT;
+                if (avCodec->id == AV_CODEC_ID_GIF)
+                {
+                    // GIF encoder typically prefers AV_PIX_FMT_PAL8 or AV_PIX_FMT_RGB8.
+                    // AV_PIX_FMT_PAL8 is usually smaller.
+                    // We might need to check which ones are supported by the specific encoder.
+                    // For now, let's try AV_PIX_FMT_PAL8.
+                    // If PAL8 is not directly supported, FFmpeg might convert from a chosen RGB format.
+                    avCodecContext->pix_fmt = AV_PIX_FMT_PAL8;
+                    // As a fallback or alternative, AV_PIX_FMT_RGB8 could be used if PAL8 causes issues:
+                    // avCodecContext->pix_fmt = AV_PIX_FMT_RGB8;
+                }
+                else
+                {
+                    avCodecContext->pix_fmt = (avCodec->pix_fmts)
+                                                  ? avCodec->pix_fmts[0]
+                                                  : RV_OUTPUT_FFMPEG_FMT;
+                }
 
                 if (m_request.verbose)
                 {
@@ -6278,11 +6294,13 @@ namespace TwkMovie
                               | MovieIO::AttributeWrite;
 
         unsigned int vidcap = MovieIO::MovieRead | MovieIO::MovieWrite | audcap;
+        unsigned int vidcap_no_audio = MovieIO::MovieRead | MovieIO::MovieWrite | MovieIO::AttributeRead | MovieIO::AttributeWrite;
 
         if (this->bruteForce())
         {
             vidcap |= MovieIO::MovieBruteForceIO;
             audcap |= MovieIO::MovieBruteForceIO;
+            vidcap_no_audio |= MovieIO::MovieBruteForceIO;
         }
 
         MovieFFMpegIO::MFFormatMap formats;
@@ -6290,6 +6308,7 @@ namespace TwkMovie
         // Video
         formats["avi"] = make_pair("Audio Video Interleave", vidcap);
         formats["flv"] = make_pair("Flash Video", vidcap);
+        formats["gif"] = make_pair("GIF Image", vidcap_no_audio); // GIF 추가
         formats["m3u8"] = make_pair("M3U8 Stream Metadata", vidcap);
         formats["m4v"] = make_pair("iTunes Video Format (from MPEG-4)", vidcap);
         formats["mkv"] = make_pair("Matroska Video", vidcap);
