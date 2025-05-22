@@ -209,9 +209,10 @@ module: export_utils
                 temp,
                 "-o", outName,
                 "-t",  "%d-%d" % (startFrame, endFrame),
-                // "-codec", "gif",
-                // "-outfps", "%f" % fps,
+                "-codec", "gif",
+                "-outfps", "15.0",
                 "-outparams",
+                    "pix_fmt=rgb8",
                     "loop=0" // 0 for infinite loop, -1 for no loop, N for N loops
             };
             return gifArgs;
@@ -226,7 +227,12 @@ module: export_utils
                 "-codec", "libx264",
                 "-outfps", "%f" % fps,
                 "-outparams",
-                    "pix_fmt=yuv420p"
+                    "pix_fmt=yuv420p",       // ffmpeg 명령어 기준
+                    "cc:crf=0",              // 무손실은 유지
+                    // "cc:color_primaries=bt709",
+                    // "cc:color_trc=bt709",
+                    // "cc:colorspace=bt709",
+                    // "cc:color_range=tv"      // "limited"에 해당 (또는 "1" 또는 "mpeg")
             };
             return mp4Args;
         }
