@@ -49,4 +49,35 @@ IF(RV_BUILD_MIO_FFMPEG)
 
   RV_STAGE(TYPE "MOVIE_FORMAT" TARGET ${_target})
 
+  IF(RV_TARGET_WINDOWS)
+    # 프로젝트 내부에 저장된 DLL 파일 목록
+    SET(_project_local_dlls
+      "libcrypto-3-x64.dll"
+      "liblzma-5.dll"
+      "libssl-3-x64.dll"
+      "libwinpthread-1.dll"
+      "zlib1.dll"
+    )
+
+    # DLL 파일이 위치한 프로젝트 내 상대 경로
+    # CMAKE_CURRENT_SOURCE_DIR는 현재 CMakeLists.txt 파일이 있는 디렉토리를 가리킵니다.
+    SET(_dll_source_dir "${CMAKE_CURRENT_SOURCE_DIR}/external_dlls")
+
+    FOREACH(_dll_file ${_project_local_dlls})
+      SET(_dll_file_full_path "${_dll_source_dir}/${_dll_file}")
+      IF(EXISTS "${_dll_file_full_path}")
+        ADD_CUSTOM_COMMAND(
+          TARGET ${_target}
+          POST_BUILD
+          COMMAND ${CMAKE_COMMAND} -E copy_if_different
+          "${_dll_file_full_path}"
+          $<TARGET_FILE_DIR:${_target}> # ${_target}.dll 이 생성되는 디렉토리
+          COMMENT "Copying project-local DLL: ${_dll_file} to output directory"
+        )
+      ELSE()
+        MESSAGE(WARNING "Project-local DLL file not found: ${_dll_file_full_path}. It will not be copied.")
+      ENDIF()
+    ENDFOREACH()
+  ENDIF()
+
 ENDIF() # IF (RV_BUILD_MIO_FFMPEG)
