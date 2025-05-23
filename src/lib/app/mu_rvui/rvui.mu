@@ -6035,7 +6035,7 @@ global bool debugGC = false;
             {"Annotated Frames...", exportAnnotatedFrames, nil, videoSourcesExistState},
             {"Audio File...", exportAs(, "*", "Audio Export"), nil, sourcesExistState},
             {"Snapshot...", exportFrame(,exportCurrentFrame), nil, videoSourcesExistState},
-            {"Current Source Frame...", exportFrame(,exportCurrentSourceFrame), nil, videoSourcesExistState},
+            {"Current Source Frame...", exportFrame(,exportCurrentSourceFrame), "control r", videoSourcesExistState},
             {"Image Attributes...", exportAttrs, nil, videoSourcesExistState},
             {"RVIO Ready Session...", exportAs(, "rv", "Session Export"), nil, videoSourcesExistState},
             {"OTIO File...", exportOtio, nil, canExportOTIOState}};
@@ -6639,6 +6639,7 @@ global bool debugGC = false;
     bind("key-down--shift--left", prevView, "Go to Previous View");
     bind("key-down--shift--right", nextView, "Go to Next View");
     bind("key-down--control--e", exportAs(, "mp4", "MP4 (H.264) Export"), "Export MP4 (H.264) Movie");
+    bind("key-down--control--r", exportFrame(,exportCurrentSourceFrame), "Export Current Frame");
     bind("key-down--control--q", queryClose, "Close Session");
     bind("key-down--control--N", clearEverything, "Clear Session");
     bind("key-down--control--S", saveAs, "Save Session As");
